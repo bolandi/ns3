@@ -86,7 +86,14 @@ int main (int argc, char *argv[])
        allNodes.Get (i)->AggregateObject (CreateObject<ConstantPositionMobilityModel> ());
    }
   
- 
+   //https://www.nsnam.org/doxygen/classns3_1_1_matrix_propagation_loss_model.html#details
+   //Create propagation loss matrix
+   Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+   lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
+   lossModel->SetLoss (allNodes.Get (0)->GetObject<MobilityModel>(), allNodes.Get (1)->GetObject<MobilityModel>(), 50); // set symmetric loss 0 <-> 1 to 50 dB
+   lossModel->SetLoss (allNodes.Get (1)->GetObject<MobilityModel>(), allNodes.Get (2)->GetObject<MobilityModel>(), 50); // set symmetric loss 2 <-> 1 to 50 dB
+   lossModel->SetLoss (allNodes.Get (2)->GetObject<MobilityModel>(), allNodes.Get (3)->GetObject<MobilityModel>(), 50); // set symmetric loss 2 <-> 3 to 50 dB
+  
 /*  
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject <ListPositionAllocator>();
