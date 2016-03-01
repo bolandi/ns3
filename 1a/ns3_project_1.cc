@@ -54,23 +54,17 @@ int main (int argc, char *argv[])
   Ssid ssid2 = Ssid ("neighbour");
   
   
-  wifiMac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssid1),
-                   "ActiveProbing", BooleanValue (false));
+  wifiMac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssid1), "ActiveProbing", BooleanValue (false));
   netDevsMe = wifi.Install (wifiPhy, wifiMac, allNodes.Get(1));
   
-  wifiMac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssid2),
-                   "ActiveProbing", BooleanValue (false));
+  wifiMac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssid2), "ActiveProbing", BooleanValue (false));
   netDevsNeighbor = wifi.Install (wifiPhy, wifiMac, allNodes.Get(2));
   
   
-  wifiMac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssid1));
+  wifiMac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid1));
   NetDeviceContainer myApContainer = wifi.Install (wifiPhy, wifiMac, allNodes.Get(0));
   
-  wifiMac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssid2));
+  wifiMac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid2));
   NetDeviceContainer neighborApContainer = wifi.Install (wifiPhy, wifiMac, allNodes.Get(3));
   
   netDevsMe.Add(myApContainer);
@@ -108,9 +102,11 @@ int main (int argc, char *argv[])
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer myifcont = ipv4.Assign (netDevsMe);
+  Ipv4InterfaceContainer myifcont = ipv4.Assign (myApContainer);
   
   ipv4.SetBase ("10.2.1.0", "255.255.255.0");
   Ipv4InterfaceContainer neighborifcont = ipv4.Assign (netDevsNeighbor);
+  Ipv4InterfaceContainer neighborifcont = ipv4.Assign (neighborApContainer);
   
   ApplicationContainer apps;  //Create Application
   
