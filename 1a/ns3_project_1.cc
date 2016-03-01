@@ -1,4 +1,3 @@
-
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
@@ -9,19 +8,34 @@
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
 #include <iostream>
+#include "ns3/propagation-module.h"
+
 using namespace ns3;
 //static bool g_verbose = true;
 int main (int argc, char *argv[])
 {
-  Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("0"));
-  Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
+  /*
+  RtsCtsThreshold: If the size of the PSDU is bigger than this value, we use an RTS/CTS handshake before sending the data frame.
+  Initial value: 65535
+  Set with class: ns3::UintegerValue
+  FragmentationThreshold: If the size of the PSDU is bigger than this value, we fragment it such that the size of the fragments are equal or smaller
+  Initial value: 2346 
+  Set with class: ns3::UintegerValue
+  */  
+  UintegerValue rtsCtsThreshold = 0;
+  
+  Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", rtsCtsThreshold);
+//  Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
   
   WifiHelper wifi = WifiHelper::Default ();
   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
+//  wifi.SetRemoteStationManager ("ns3::ArfWifiManager");  // need to understand what is this exactly
+   wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
+            "DataMode", StringValue("DsssRate11Mbps"),
+            "ControlMode", StringValue("DsssRate11Mbps"));
   
   NodeContainer allNodes;
   allNodes.Create(4);  //Devices order in the container is as follow: my AP, my laptop, neighbor laptop, neighbor AP.
-
   
   NetDeviceContainer netDevsMe;
   NetDeviceContainer netDevsNeighbor;
@@ -29,7 +43,7 @@ int main (int argc, char *argv[])
   InternetStackHelper internetStack;
   internetStack.Install (allNodes);
   
-  
+  //create non QoS-enabled MAC layers for a ns3::WifiNetDevice
   NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   //wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);  //we might need this for tapping
@@ -40,7 +54,6 @@ int main (int argc, char *argv[])
   Ssid ssid2 = Ssid ("neighbour");
   
   
-  wifi.SetRemoteStationManager ("ns3::ArfWifiManager");  // need to understand what is this exactly
   wifiMac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssid1),
                    "ActiveProbing", BooleanValue (false));
@@ -63,6 +76,18 @@ int main (int argc, char *argv[])
   netDevsMe.Add(myApContainer);
   netDevsNeighbor.Add(neighborApContainer);
   
+  /**************************** must read **************************************
+	https://www.nsnam.org/docs/release/3.11/manual/html/object-model.html
+  ******************************************************************************/
+  
+   // Place nodes somehow, this is required by every wireless simulation. In this case consant position since we assume they do no move
+   for (size_t i = 0; i < 4; i++)
+   {
+       allNodes.Get (i)->AggregateObject (CreateObject<ConstantPositionMobilityModel> ());
+   }
+  
+ 
+/*  
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject <ListPositionAllocator>();
   positionAlloc ->Add(Vector(0, 0, 0)); // my AP
@@ -72,7 +97,7 @@ int main (int argc, char *argv[])
   mobility.SetPositionAllocator(positionAlloc);
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   mobility.Install(allNodes);  //Need to set the propagation loss according to this
-  
+*/  
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer myifcont = ipv4.Assign (netDevsMe);
@@ -90,7 +115,7 @@ int main (int argc, char *argv[])
   apps.Start (Seconds (1.0));
   apps.Stop (Seconds (201.0));
   
-  PacketSinkHelper sink ("ns3::UdpSocketFactory",
+//  PacketSinkHelper sink ("ns3::UdpSocketFactory",
   InetSocketAddress ("10.1.1.1", 1025));
   apps = sink.Install (allNodes.Get(2));
   apps.Start (Seconds (0.0));
