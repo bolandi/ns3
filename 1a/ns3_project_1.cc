@@ -101,12 +101,12 @@ int main (int argc, char *argv[])
 */  
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer myifcont = ipv4.Assign (netDevsMe);
-  Ipv4InterfaceContainer myifcont = ipv4.Assign (myApContainer);
+  Ipv4InterfaceContainer myifcont_a = ipv4.Assign (netDevsMe);
+  Ipv4InterfaceContainer myifcont_A = ipv4.Assign (myApContainer);
   
   ipv4.SetBase ("10.2.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer neighborifcont = ipv4.Assign (netDevsNeighbor);
-  Ipv4InterfaceContainer neighborifcont = ipv4.Assign (neighborApContainer);
+  Ipv4InterfaceContainer neighborifcont_b = ipv4.Assign (netDevsNeighbor);
+  Ipv4InterfaceContainer neighborifcont_B = ipv4.Assign (neighborApContainer);
   
   ApplicationContainer apps;  //Create Application
   
