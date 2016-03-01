@@ -115,22 +115,23 @@ int main (int argc, char *argv[])
   // [TODO] Is b address 10.2.1.1? should be taken from node itself
   Address b_address (InetSocketAddress ("10.2.1.1", 4493));
   PacketSinkHelper sink ("ns3::UdpSocketFactory", b_address);
+  apps.Add(sink.Install(allNodes.Get(2)));
+	
 
-  std::cout<<"so far so good\n";
-
-/*  
-  OnOffHelper onoff ("ns3::UdpSocketFactory",InetSocketAddress ("10.1.1.1", 1025));
-  onoff.SetAttribute ("OnTime", StringValue ("Constant:1.0"));
-  onoff.SetAttribute ("OffTime", StringValue ("Constant:0.0"));
+  OnOffHelper onoff ("ns3::UdpSocketFactory",InetSocketAddress ("10.2.1.1", 4493));
+  onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=20]"));
+  onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
   onoff.SetConstantRate (DataRate ("11Mb/s"));
-  apps = onoff.Install (allNodes.Get(3));
+  apps.Add(onoff.Install (allNodes.Get(3)));
+
+  std::cout<<"so far so good\n";  
+
   apps.Start (Seconds (1.0));
   apps.Stop (Seconds (201.0));
   
-  // apps = sink.Install (allNodes.Get(2));
   apps.Start (Seconds (0.0));
   apps.Stop (Seconds (202.0));
-*/ 
+ 
  
  
   /*
