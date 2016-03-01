@@ -69,6 +69,7 @@ int main (int argc, char *argv[])
   
   netDevsMe.Add(myApContainer);
   netDevsNeighbor.Add(neighborApContainer);
+
   
   /**************************** must read **************************************
 	https://www.nsnam.org/docs/release/3.11/manual/html/object-model.html
@@ -108,6 +109,8 @@ int main (int argc, char *argv[])
   Ipv4InterfaceContainer neighborifcont_b = ipv4.Assign (netDevsNeighbor);
   Ipv4InterfaceContainer neighborifcont_B = ipv4.Assign (neighborApContainer);
   
+  std::cout<<"so far so good\n";
+/*  
   ApplicationContainer apps;  //Create Application
   
   OnOffHelper onoff ("ns3::UdpSocketFactory",InetSocketAddress ("10.1.1.1", 1025));
@@ -119,11 +122,14 @@ int main (int argc, char *argv[])
   apps.Stop (Seconds (201.0));
   
 //  PacketSinkHelper sink ("ns3::UdpSocketFactory",
-  InetSocketAddress ("10.1.1.1", 1025));
-  apps = sink.Install (allNodes.Get(2));
+  InetSocketAddress ("10.1.1.1", 1025);
+  // apps = sink.Install (allNodes.Get(2));
   apps.Start (Seconds (0.0));
   apps.Stop (Seconds (202.0));
-  
+ 
+*/ 
+ 
+ 
   /*
   void ns3::YansWifiPhyHelper::EnablePcapInternal	(	std::string 	prefix,
 Ptr< NetDevice > 	nd,
@@ -151,7 +157,9 @@ explicitFilename	Treat the prefix as an explicit filename if true
   
   Simulator::Stop (Seconds (202.0));  
   
+  std::cout<<"Starting simulation\n";
   Simulator::Run ();
   Simulator::Destroy ();
+  std::cout<<"simulation ran successfully\n";
   return 0;
 }
