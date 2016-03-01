@@ -1,4 +1,3 @@
-
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
@@ -18,6 +17,7 @@ int main (int argc, char *argv[])
 {
   Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("0"));
   Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
+  Config::SetDefault( "ns3::RangePropagationLossModel::MaxRange", DoubleValue( 6.0 ) );
   
   WifiHelper wifi = WifiHelper::Default ();
   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
@@ -36,7 +36,9 @@ int main (int argc, char *argv[])
   NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);  //we might need this for tapping
-  YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+  YansWifiChannelHelper wifiChannel;
+  	wifiChannel.SetPropagationDelay( "ns3::ConstantSpeedPropagationDelayModel" );
+	wifiChannel.AddPropagationLoss(  "ns3::RangePropagationLossModel" );
   wifiPhy.SetChannel (wifiChannel.Create ());
   
   
@@ -70,44 +72,81 @@ int main (int argc, char *argv[])
   netDevsMe.Add(myApContainer);
   netDevsNeighbor.Add(neighborApContainer);
   
-  wifiPhy.EnablePcap ("problem1a", netDevsNeighbor);
+  wifiPhy.EnablePcap ("mydevices", netDevsMe);
+  wifiPhy.EnablePcap ("neighbor", netDevsNeighbor);
   
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject <ListPositionAllocator>();
   positionAlloc ->Add(Vector(0, 0, 0)); // my AP
-  positionAlloc ->Add(Vector(1, 0, 0)); // my laptop
-  positionAlloc ->Add(Vector(2, 0, 0)); // neighbor laptop
-  positionAlloc ->Add(Vector(3, 0, 0)); // neighbor AP
+  positionAlloc ->Add(Vector(5, 0, 0)); // my laptop
+  positionAlloc ->Add(Vector(10, 0, 0)); // neighbor laptop
+  positionAlloc ->Add(Vector(15, 0, 0)); // neighbor AP
   mobility.SetPositionAllocator(positionAlloc);
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   mobility.Install(allNodes);  //Need to set the propagation loss according to this
   
-  Ipv4AddressHelper ipv4;
-  ipv4.SetBase ("10.1.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer myifcont = ipv4.Assign (netDevsMe);
+    //////////////////////
+
+  Ipv4AddressHelper ipv4me;
+  ipv4me.SetBase ("10.1.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer myifcont = ipv4me.Assign (netDevsMe);
   
-  ipv4.SetBase ("10.2.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer neighborifcont = ipv4.Assign (netDevsNeighbor);
+  Ipv4AddressHelper ipv4neighbor;
+  ipv4neighbor.SetBase ("10.2.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer neighborifcont = ipv4neighbor.Assign (netDevsNeighbor);
   
-  ApplicationContainer apps;  //Create Application
+  uint16_t sinkPort = 8080;
+
+  Address sinkAddress (InetSocketAddress (neighborifcont.GetAddress (1),sinkPort));
   
-  OnOffHelper onoff ("ns3::UdpSocketFactory",InetSocketAddress ("10.1.1.2", 80));
-  onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=20]"));
-  onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=20]"));
-  onoff.SetConstantRate (DataRate ("11Mb/s"));
-  apps = onoff.Install (allNodes.Get(3));
-  apps.Start (Seconds (1.0));
-  apps.Stop (Seconds (201.0));
+  ApplicationContainer sourceAp;  //Create Application
   
-  PacketSinkHelper sink ("ns3::UdpSocketFactory",
-  InetSocketAddress ("10.1.1.2", 80));
-  apps = sink.Install (allNodes.Get(2));
-  apps.Start (Seconds (0.0));
-  apps.Stop (Seconds (202.0));
+  OnOffHelper onOffHelper ("ns3::UdpSocketFactory", sinkAddress);
+  onOffHelper.SetAttribute ("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
+  onOffHelper.SetAttribute ("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
+  onOffHelper.SetAttribute ("DataRate",StringValue ("54Mbps"));
+  onOffHelper.SetAttribute ("PacketSize", UintegerValue (1024));
   
-  Simulator::Stop (Seconds (300.0));  
+  sourceAp.Add(onOffHelper.Install (allNodes.Get(2)));
+  sourceAp.Start (Seconds (1.0));
+  sourceAp.Stop (Seconds (201.0));
+  
+  ApplicationContainer sinkapp;
+  PacketSinkHelper sink ("ns3::UdpSocketFactory",InetSocketAddress (neighborifcont.GetAddress (1),sinkPort));
+  sinkapp = sink.Install (allNodes.Get(3));
+  sinkapp.Start (Seconds (0.0));
+  sinkapp.Stop (Seconds (202.0));
+
+  ///////////////////////////
+  /*
+    Ipv4AddressHelper address;
+  address.SetBase ("10.1.1.0", "255.255.255.0");
+
+
+  Ipv4InterfaceContainer interfaces = address.Assign (netDevsNeighbor);
+
+  UdpEchoServerHelper echoServer (9);
+
+  ApplicationContainer serverApps = echoServer.Install (allNodes.Get (3));
+  serverApps.Start (Seconds (1.0));
+  serverApps.Stop (Seconds (10.0));
+
+  UdpEchoClientHelper echoClient (interfaces.GetAddress (1), 9);
+  echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+  echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
+  echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
+
+  ApplicationContainer clientApps = echoClient.Install (allNodes.Get (2));
+  clientApps.Start (Seconds (2.0));
+  clientApps.Stop (Seconds (10.0));
+  */
+  
+  Simulator::Stop (Seconds (30.0));  
   
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;
 }
+
+
+
