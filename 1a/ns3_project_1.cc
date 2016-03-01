@@ -29,7 +29,7 @@ int main (int argc, char *argv[])
   
   WifiHelper wifi = WifiHelper::Default ();
   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
-//  wifi.SetRemoteStationManager ("ns3::ArfWifiManager");  // need to understand what is this exactly
+  wifi.SetRemoteStationManager ("ns3::ArfWifiManager");  // need to understand what is this exactly
    wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
             "DataMode", StringValue("DsssRate11Mbps"),
             "ControlMode", StringValue("DsssRate11Mbps"));
@@ -123,6 +123,31 @@ int main (int argc, char *argv[])
   apps = sink.Install (allNodes.Get(2));
   apps.Start (Seconds (0.0));
   apps.Stop (Seconds (202.0));
+  
+  /*
+  void ns3::YansWifiPhyHelper::EnablePcapInternal	(	std::string 	prefix,
+Ptr< NetDevice > 	nd,
+bool 	promiscuous,
+bool 	explicitFilename 
+)		
+privatevirtual
+Enable pcap output the indicated net device.
+
+NetDevice-specific implementation mechanism for hooking the trace and writing to the trace file.
+
+Parameters
+prefix	Filename prefix to use for pcap files.
+nd	Net device for which you want to enable tracing.
+promiscuous	If true capture all possible packets available at the device.
+explicitFilename	Treat the prefix as an explicit filename if true
+*/
+
+  //Enable capture
+  wifiPhy.EnablePcap("a", netDevsMe); 
+  wifiPhy.EnablePcap("A", myApContainer); 
+  wifiPhy.EnablePcap("b", netDevsNeighbor); 
+  wifiPhy.EnablePcap("B", neighborApContainer); 
+  
   
   Simulator::Stop (Seconds (202.0));  
   
