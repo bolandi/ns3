@@ -109,10 +109,16 @@ int main (int argc, char *argv[])
   Ipv4InterfaceContainer neighborifcont_b = ipv4.Assign (netDevsNeighbor);
   Ipv4InterfaceContainer neighborifcont_B = ipv4.Assign (neighborApContainer);
   
-  std::cout<<"so far so good\n";
-/*  
-  ApplicationContainer apps;  //Create Application
   
+  ApplicationContainer apps;  //Create Application
+
+  // [TODO] Is b address 10.2.1.1? should be taken from node itself
+  Address b_address (InetSocketAddress ("10.2.1.1", 4493));
+  PacketSinkHelper sink ("ns3::UdpSocketFactory", b_address);
+
+  std::cout<<"so far so good\n";
+
+/*  
   OnOffHelper onoff ("ns3::UdpSocketFactory",InetSocketAddress ("10.1.1.1", 1025));
   onoff.SetAttribute ("OnTime", StringValue ("Constant:1.0"));
   onoff.SetAttribute ("OffTime", StringValue ("Constant:0.0"));
@@ -121,12 +127,9 @@ int main (int argc, char *argv[])
   apps.Start (Seconds (1.0));
   apps.Stop (Seconds (201.0));
   
-//  PacketSinkHelper sink ("ns3::UdpSocketFactory",
-  InetSocketAddress ("10.1.1.1", 1025);
   // apps = sink.Install (allNodes.Get(2));
   apps.Start (Seconds (0.0));
   apps.Stop (Seconds (202.0));
- 
 */ 
  
  
