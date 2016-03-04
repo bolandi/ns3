@@ -92,14 +92,13 @@ int main(int argc, char *argv[])
 	internetStack.Install(node_B);
 
 	// Assign ipv.4 addresses
-	Ipv4AddressHelper ipv4me;
-	ipv4me.SetBase("10.1.1.0", "255.255.255.0");
-	Ipv4InterfaceContainer if_container_A = ipv4me.Assign(dev_A);
-	Ipv4InterfaceContainer if_container_a = ipv4me.Assign(dev_a);
-	Ipv4AddressHelper ipv4neighbor;
-	ipv4neighbor.SetBase("10.2.1.0", "255.255.255.0");
-	Ipv4InterfaceContainer if_container_b = ipv4me.Assign(dev_b);
-	Ipv4InterfaceContainer if_container_B = ipv4me.Assign(dev_B);
+	Ipv4AddressHelper ipv4_helper;
+	ipv4_helper.SetBase("10.1.1.0", "255.255.255.0");
+	Ipv4InterfaceContainer if_container_A = ipv4_helper.Assign(dev_A);
+	Ipv4InterfaceContainer if_container_a = ipv4_helper.Assign(dev_a);
+	ipv4_helper.SetBase("10.2.1.0", "255.255.255.0");
+	Ipv4InterfaceContainer if_container_b = ipv4_helper.Assign(dev_b);
+	Ipv4InterfaceContainer if_container_B = ipv4_helper.Assign(dev_B);
 
 	// Setup packet capture for all nodes
 	wifiPhy.EnablePcap("1c_A", dev_A, true);
